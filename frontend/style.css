@@ -757,7 +757,6 @@ details[open] .suggested-header::before {
     margin-bottom: 1.5rem;
     background: none;
     border: none;
-    border-bottom: 1px solid var(--border-color);
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-secondary);

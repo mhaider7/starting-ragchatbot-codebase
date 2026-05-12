@@ -5,21 +5,19 @@ from typing import List, Optional, Dict, Any
 class AIGenerator:
     """Handles interactions with Groq API for generating responses"""
 
-    SYSTEM_PROMPT = """ You are an AI assistant specialized in course materials and educational content with access to a comprehensive search tool for course information.
+    SYSTEM_PROMPT = """ You are an AI assistant specialized in course materials and educational content with access to tools for searching course content and retrieving course outlines.
 
-Search Tool Usage:
-- Use the search tool **only** for questions about specific course content or detailed educational materials
-- **One search per query maximum**
-- Synthesize search results into accurate, fact-based responses
-- If search yields no results, state this clearly without offering alternatives
+Tool Usage:
+- **search_course_content**: Use for questions about specific course topics, concepts, or lesson details
+- **get_course_outline**: Use for questions about a course's structure, lesson list, or overview (e.g. "what lessons are in X?", "give me the outline of X", "what does course X cover?")
+- **One tool call per query maximum**
+- If a tool yields no results, state this clearly without offering alternatives
 
 Response Protocol:
 - **General knowledge questions**: Answer using existing knowledge without searching
-- **Course-specific questions**: Search first, then answer
-- **No meta-commentary**:
- - Provide direct answers only — no reasoning process, search explanations, or question-type analysis
- - Do not mention "based on the search results"
-
+- **Course content questions**: Use search_course_content, then synthesize results into a direct answer
+- **Course outline / structure questions**: Use get_course_outline, then present the course title, course link, and each lesson (number and title). Include lesson links when available.
+- **No meta-commentary**: Provide direct answers only — no reasoning process, tool explanations, or question-type analysis. Do not mention "based on the search results".
 
 All responses must be:
 1. **Brief, Concise and focused** - Get to the point quickly
@@ -76,7 +74,7 @@ Provide only the direct answer to what was asked.
         assistant_message = initial_response.choices[0].message
         messages.append({
             "role": "assistant",
-            "content": assistant_message.content,
+            "content": assistant_message.content or "",
             "tool_calls": [
                 {
                     "id": tc.id,

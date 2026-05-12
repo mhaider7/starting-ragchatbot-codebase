@@ -117,6 +117,57 @@ class CourseSearchTool(Tool):
         
         return "\n\n".join(formatted)
 
+class CourseOutlineTool(Tool):
+    """Tool for retrieving a full course outline from the course catalog"""
+
+    def __init__(self, vector_store: VectorStore):
+        self.store = vector_store
+
+    def get_tool_definition(self) -> Dict[str, Any]:
+        return {
+            "type": "function",
+            "function": {
+                "name": "get_course_outline",
+                "description": "Get the full outline of a course: title, link, and all lessons with their numbers, titles, and links",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "course_title": {
+                            "type": "string",
+                            "description": "The course name or title (partial matches work)"
+                        }
+                    },
+                    "required": ["course_title"]
+                }
+            }
+        }
+
+    def execute(self, course_title: str) -> str:
+        outline = self.store.get_course_outline(course_title)
+        if not outline:
+            return f"No course found matching '{course_title}'."
+
+        lines = [f"Course: {outline['title']}"]
+        if outline.get('course_link'):
+            lines.append(f"Course Link: {outline['course_link']}")
+
+        lessons = outline.get('lessons', [])
+        if lessons:
+            lines.append(f"\nLessons ({len(lessons)} total):")
+            for lesson in lessons:
+                num = lesson.get('lesson_number', '?')
+                title = lesson.get('lesson_title', 'Untitled')
+                link = lesson.get('lesson_link')
+                entry = f"  Lesson {num}: {title}"
+                if link:
+                    entry += f" — {link}"
+                lines.append(entry)
+        else:
+            lines.append("No lessons found.")
+
+        return "\n".join(lines)
+
+
 class ToolManager:
     """Manages available tools for the AI"""
     
