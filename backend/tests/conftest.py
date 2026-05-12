@@ -1,7 +1,8 @@
 import sys
 import os
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
+from fastapi.testclient import TestClient
 
 # Add backend directory to path so imports work
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -66,6 +67,38 @@ def sample_course():
 @pytest.fixture
 def mock_groq_client():
     return MagicMock()
+
+
+@pytest.fixture(scope="module")
+def app_module():
+    """Import FastAPI app once per test module with RAGSystem and StaticFiles mocked out."""
+    sys.modules.pop("app", None)
+    placeholder = MagicMock()
+    placeholder.add_course_folder.return_value = (0, 0)
+    with patch("rag_system.RAGSystem", return_value=placeholder), \
+         patch("fastapi.staticfiles.StaticFiles") as MockStatic:
+        MockStatic.return_value = MagicMock()
+        import app as _mod
+        yield _mod
+
+
+@pytest.fixture
+def mock_rag_system(app_module):
+    """Fresh RAGSystem mock wired into the app for each test."""
+    mock = MagicMock()
+    mock.query.return_value = ("Default answer.", [{"label": "Source - Lesson 1", "url": None}])
+    mock.get_course_analytics.return_value = {"total_courses": 2, "course_titles": ["Python", "JS"]}
+    mock.session_manager.create_session.return_value = "session_test"
+    mock.session_manager.clear_session.return_value = None
+    mock.add_course_folder.return_value = (0, 0)
+    app_module.rag_system = mock
+    return mock
+
+
+@pytest.fixture
+def api_client(app_module, mock_rag_system):
+    """TestClient bound to the test app, with a fresh RAGSystem mock."""
+    return TestClient(app_module.app)
 
 
 def make_tool_call_mock(tool_name="search_course_content", arguments='{"query": "python variables"}', call_id="call_abc123"):
