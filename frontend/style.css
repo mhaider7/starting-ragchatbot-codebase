@@ -946,33 +946,66 @@ details[open] .suggested-header::before {
 
 /* Theme Toggle Button */
 .theme-toggle {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 1000;
+    position: absolute;
+    top: 50%;
+    right: 1.5rem;
+    transform: translateY(-50%);
+    z-index: 10;
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 20px;
     border: 1px solid var(--toggle-border);
     background: var(--toggle-bg);
     color: var(--toggle-color);
     cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     padding: 0;
+    overflow: hidden;
     box-shadow: var(--shadow);
+    transition: width 0.35s ease, background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .theme-toggle:hover {
     color: var(--primary-color);
     border-color: var(--primary-color);
-    transform: scale(1.08);
+    width: 200px;
 }
 
 .theme-toggle:focus-visible {
     outline: none;
     box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* Label revealed on hover */
+.theme-toggle-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 0;
+    opacity: 0;
+    padding-left: 0;
+    color: inherit;
+    transition: max-width 0.35s ease, opacity 0.25s ease, padding-left 0.35s ease;
+}
+
+.theme-toggle:hover .theme-toggle-label {
+    max-width: 160px;
+    opacity: 1;
+    padding-left: 0.75rem;
+}
+
+/* Icon wrapper — keeps the icon centered as a fixed 40×40 area */
+.theme-toggle-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
 }
 
 /* Icon visibility */
